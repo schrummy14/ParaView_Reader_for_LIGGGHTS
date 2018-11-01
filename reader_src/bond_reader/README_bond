@@ -1,0 +1,21 @@
+The plugin converts the dump local files to a ParaView readable format.
+In the liggghts input script you must use the following command
+
+compute bc all property/local batom1x batom1y batom1z batom2x batom2y batom2z batom1 batom2 btype bforceX bforceY bforceZ btorqueX btorqueY btorqueZ beqdist
+
+where
+batom1x, batom1y, batom1z is the position of the first atom of the bond pair
+batom2x, batom2y, batom2z is the position of the second atom of the bond pair
+batom1, batom2, and btype is the ids of each atom and the type of the bond
+bforceX, bforceY, and bforceZ are the forces in each bond
+btorqueX, btorqueY, and btorqueZ are the torques in each bond
+and beqdist is the equilibrium distance between the two atoms
+
+You then would need to use the following dump command
+
+dump bondforcechain all local ${fileprint_step} post/bfc*.bond &
+    c_bc[1] c_bc[2] c_bc[3] c_bc[4] c_bc[5] c_bc[6] c_bc[7] c_bc[8] c_bc[9] c_bc[10] c_bc[11] c_bc[12] c_bc[13] c_bc[14] c_bc[15] c_bc[16]
+
+to generate the dump files
+
+The Plugin outputs a VTKPolyData Object which contains the Points and a line connecting each bond-pair for visualization
