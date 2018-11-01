@@ -188,113 +188,133 @@ int liggghts_bondreader::RequestData(vtkInformation *request, vtkInformationVect
 	btype->SetNumberOfTuples(2*COUNT);
 	btype->SetName("Type");
 
+	vtkDoubleArray *eq_dist = vtkDoubleArray::New();
+	eq_dist->SetNumberOfComponents(1);
+	eq_dist->Reset();
+	eq_dist->SetNumberOfTuples(2*COUNT);
+	eq_dist->SetName("eq_dist");
+
 	vtkDoubleArray *force = vtkDoubleArray::New();
 	force->SetNumberOfComponents(3);
 	force->SetName("F");
 
+	vtkDoubleArray *torque = vtkDoubleArray::New();
+	torque->SetNumberOfComponents(3);
+	torque->SetName("T");
+
+
 	if (COUNT>0) {
 
-	float x1[3],x2[3];
-	int btype_,mol_;
-	//double fx_,fy_,fz_;
-	double f[3];
-	int lc=0;
-	int pc=0;
-	std::string item;
-	//printf("expecting %d elements\n",COUNT); 
+		float x1[3],x2[3];
+		int btype_,mol_;
+		//double fx_,fy_,fz_;
+		double f[3];
+		double tor[3];
+		double eq_r;
+		int lc=0;
+		int pc=0;
+		std::string item;
+		//printf("expecting %d elements\n",COUNT); 
 
-	// Allocate memory
-	int *id1 = new int[COUNT];
-	if (id1 == NULL) 
-	{
-		printf("Error allocating memory for id1!\n"); 
-		return 0;
-	}
-	int *id2 = new int[COUNT];
-	if (id2 == NULL) 
-	{
-		printf("Error allocating memory for id2!\n"); 
-		return 0;
-	}
-
-
-
-	vtkSmartPointer<vtkLine> *vtkline = new vtkSmartPointer<vtkLine>[COUNT];
-	if (vtkline == NULL) 
-	{
-		printf("Error allocating memory for vtkline!\n"); 
-		return 0;
-	}
-
-	//Create a cell array to store the lines in and add the lines to it
+		// Allocate memory
+		int *id1 = new int[COUNT];
+		if (id1 == NULL) 
+		{
+			printf("Error allocating memory for id1!\n"); 
+			return 0;
+		}
+		int *id2 = new int[COUNT];
+		if (id2 == NULL) 
+		{
+			printf("Error allocating memory for id2!\n"); 
+			return 0;
+		}
 
 
-	while ( this->File->getline(line,sizeof(line)) ) { //every line
-		int ic=0;
-		std::string line_content=line;
-		std::stringstream ls(line_content);
-		while(std::getline(ls, item, ' ')) { //every item
-			switch (ic) {
-			case 0:	x1[0]=atof(item.c_str());break;
-			case 1:	x1[1]=atof(item.c_str());break;
-			case 2:	x1[2]=atof(item.c_str());break;
-			case 3:	x2[0]=atof(item.c_str());break;
-			case 4:	x2[1]=atof(item.c_str());break;
-			case 5:	x2[2]=atof(item.c_str());break;
-			case 6: id1[lc]=atoi(item.c_str());break;
-			case 7: id2[lc]=atoi(item.c_str());break;
-			case 8: btype_=atoi(item.c_str());break;
-			case 9: mol_=atoi(item.c_str());break;
-			case 10: f[0]=atof(item.c_str());break;
-			case 11: f[1]=atof(item.c_str());break;
-			case 12: f[2]=atof(item.c_str());break; 
-			}
-			ic++;
-		} //item
-		points->InsertNextPoint(x1[0], x1[1], x1[2]);
-		points->InsertNextPoint(x2[0], x2[1], x2[2]);
 
-		pid->InsertTuple1(pc, id1[lc]);	   //ID of point1
-		pid->InsertTuple1(pc+1, id2[lc]);  //ID of point2
+		vtkSmartPointer<vtkLine> *vtkline = new vtkSmartPointer<vtkLine>[COUNT];
+		if (vtkline == NULL) 
+		{
+			printf("Error allocating memory for vtkline!\n"); 
+			return 0;
+		}
 
-		btype->InsertTuple1(pc, btype_);    //btype of point1
-		btype->InsertTuple1(pc+1, btype_);  //btype of point2
-
-		mol->InsertTuple1(pc, mol_);    //mol of point1
-		mol->InsertTuple1(pc+1, mol_);  //mol of point2
-
-		vtkline[lc] = vtkSmartPointer<vtkLine>::New();
-		vtkline[lc]->GetPointIds()->SetId(0,pc);
-		vtkline[lc]->GetPointIds()->SetId(1,pc+1);
-		lines->InsertNextCell(vtkline[lc]);
-
-		force->InsertNextTupleValue(f);
-		pc+=2;
-		lc++;
-	}//line
+		//Create a cell array to store the lines in and add the lines to it
 
 
-	// free memory
-	if (id1 != NULL) 
-	{
-		delete [] id1;
-		id1 = NULL;
-	}
-	if (id2 != NULL) 
-	{
-		delete [] id2;
-		id2 = NULL;
-	}
-	if (vtkline != NULL) 
-	{
-		delete [] vtkline;
-		vtkline = NULL;
-	}
+		while ( this->File->getline(line,sizeof(line)) ) { //every line
+			int ic=0;
+			std::string line_content=line;
+			std::stringstream ls(line_content);
+			while(std::getline(ls, item, ' ')) { //every item
+				switch (ic) {
+					printf("string == %s\n",item.c_str());
+					case 0: x1[0]=atof(item.c_str());break;
+					case 1: x1[1]=atof(item.c_str());break;
+					case 2: x1[2]=atof(item.c_str());break;
+					case 3: x2[0]=atof(item.c_str());break;
+					case 4: x2[1]=atof(item.c_str());break;
+					case 5: x2[2]=atof(item.c_str());break;
+					case 6: id1[lc]=atoi(item.c_str());break;
+					case 7: id2[lc]=atoi(item.c_str());break;
+					case 8: btype_=atoi(item.c_str());break;
+					case 9: f[0]=atof(item.c_str());break;
+					case 10: f[1]=atof(item.c_str());break;
+					case 11: f[2]=atof(item.c_str());break;
+					case 12: tor[0]=atof(item.c_str());break;
+					case 13: tor[1]=atof(item.c_str());break;
+					case 14: tor[2]=atof(item.c_str());break;
+					case 15: eq_r=atof(item.c_str());break;
+					case 16: mol_=atoi(item.c_str());break;
+				}
+				++ic;
+			} //item
+			points->InsertNextPoint(x1[0], x1[1], x1[2]);
+			points->InsertNextPoint(x2[0], x2[1], x2[2]);
 
-	} //count>0
-	else {
+			pid->InsertTuple1(pc, id1[lc]);	   //ID of point1
+			pid->InsertTuple1(pc+1, id2[lc]);  //ID of point2
+
+			btype->InsertTuple1(pc, btype_);    //btype of point1
+			btype->InsertTuple1(pc+1, btype_);  //btype of point2
+
+			mol->InsertTuple1(pc, mol_);    //mol of point1
+			mol->InsertTuple1(pc+1, mol_);  //mol of point2
+
+			vtkline[lc] = vtkSmartPointer<vtkLine>::New();
+			vtkline[lc]->GetPointIds()->SetId(0,pc);
+			vtkline[lc]->GetPointIds()->SetId(1,pc+1);
+			lines->InsertNextCell(vtkline[lc]);
+
+			force->InsertNextTupleValue(f);
+			torque->InsertNextTupleValue(tor);
+			eq_dist->InsertTuple1(pc,eq_r);
+			eq_dist->InsertTuple1(pc+1,eq_r);
+			pc+=2;
+			lc++;
+		}//line
+
+
+		// free memory
+		if (id1 != NULL) 
+		{
+			delete [] id1;
+			id1 = NULL;
+		}
+		if (id2 != NULL) 
+		{
+			delete [] id2;
+			id2 = NULL;
+		}
+		if (vtkline != NULL) 
+		{
+			delete [] vtkline;
+			vtkline = NULL;
+		}
+
+	} else { //count>0
 		points->InsertNextPoint(0, 0, 0);
-	     }
+	}
 	// get the info object
 	vtkInformation *outInfo = outputVector->GetInformationObject(0);
 
@@ -310,7 +330,9 @@ int liggghts_bondreader::RequestData(vtkInformation *request, vtkInformationVect
 		myoutput->GetPointData()->AddArray(pid);
 		myoutput->GetPointData()->AddArray(btype);
 		myoutput->GetPointData()->AddArray(mol);
+		myoutput->GetPointData()->AddArray(eq_dist);
 		myoutput->GetCellData()->AddArray(force);
+		myoutput->GetCellData()->AddArray(torque);
 		myoutput->Modified();
 	}
 
